@@ -7,74 +7,86 @@
 
 using namespace std;
 
-int main() {
-    srand(static_cast<unsigned int>(time(0)));
-
+void playGame() {
     vector<WordEntry> library = getLibrary();
     WordEntry selected = library[rand() % library.size()];
-    string targetWord = selected.word;
-    string guessedWord(targetWord.length(), '_');
+    string target = selected.word;
+    string guessed(target.length(), '_');
+    int tries = 6, hints = 2;
+    vector<char> used;
 
-    int tries = 6;
-    int hintsLeft = 2;
-    vector<char> usedLetters;
+    while (tries > 0 && guessed != target) {
+        system("cls");
+        setColor(CYAN);
+        cout << "=== HANGMAN: PUG EDITION (^_^)v ===" << endl;
 
-    cout << "===========================================" << endl;
-    cout << "   HANGMAN: MODULAR EDITION (^_^)v   " << endl;
-    cout << "===========================================" << endl;
-
-    while (tries > 0 && guessedWord != targetWord) {
         drawGallows(6 - tries);
-        printStatus(guessedWord, tries, hintsLeft, usedLetters);
+        printStatus(guessed, tries, hints, used);
 
-        cout << "Guess a letter (or '!' for hint): ";
-        string input;
-        cin >> input;
-        if (input.empty()) continue;
-        char guess = tolower(input[0]);
+        cout << "Guess letter (or '!' for hint): ";
+        string in; cin >> in;
+        if (in.empty()) continue;
+        char g = tolower(in[0]);
 
-        if (guess == '!') {
-            if (hintsLeft == 2) {
-                cout << " (o_o)7 HINT 1 (Category): " << selected.category << endl;
-                hintsLeft--;
-            } else if (hintsLeft == 1) {
-                for (int i = 0; i < targetWord.length(); i++) {
-                    if (guessedWord[i] == '_') {
-                        cout << " (O_O)! HINT 2 (Letter): Try '" << targetWord[i] << "'" << endl;
-                        hintsLeft--;
-                        break;
+        if (g == '!') {
+            if (hints == 2) {
+                setColor(YELLOW);
+                cout << "\n (o_o)7 Category: " << selected.category << endl;
+                hints--;
+                system("pause");
+            }
+            else if (hints == 1) {
+                for (int i = 0; i < target.length(); i++)
+                    if (guessed[i] == '_') {
+                        setColor(YELLOW);
+                        cout << "\n (O_O)! Letter: " << target[i] << endl;
+                        hints--; break;
                     }
-                }
+                system("pause");
             } else {
-                cout << " (X_X) No more hints!" << endl;
+                setColor(RED);
+                cout << "\n (X_X) No hints!" << endl;
+                system("pause");
             }
             continue;
         }
 
-        if (find(usedLetters.begin(), usedLetters.end(), guess) != usedLetters.end()) {
-            cout << " (-_-) Already tried that!" << endl;
-            continue;
-        }
+        if (find(used.begin(), used.end(), g) != used.end()) continue;
+        used.push_back(g);
 
-        usedLetters.push_back(guess);
-
-        if (targetWord.find(guess) != string::npos) {
-            for (int i = 0; i < targetWord.length(); i++) {
-                if (targetWord[i] == guess) guessedWord[i] = guess;
-            }
+        if (target.find(g) != string::npos) {
+            for (int i = 0; i < target.length(); i++) if (target[i] == g) guessed[i] = g;
+            setColor(GREEN);
             cout << " d(^o^)b YES!" << endl;
         } else {
+            setColor(RED);
             cout << " (T_T) WRONG!" << endl;
             tries--;
+            Sleep(500);
         }
     }
 
-    if (guessedWord == targetWord) {
-        cout << "\n \\(^O^)/ VICTORY! The word was: " << targetWord << endl;
+    system("cls");
+    if (guessed == target) {
+        setColor(GREEN);
+        cout << "\n \\(^O^)/ VICTORY! Word: " << target << endl;
     } else {
         drawGallows(6);
-        cout << "\n (x_x) GAME OVER. The word was: " << targetWord << endl;
+        setColor(RED);
+        cout << "\n (x_x) DEFEAT! Word was: " << target << endl;
     }
+    setColor(WHITE);
+}
 
+int main() {
+    srand(static_cast<unsigned int>(time(0)));
+    char choice;
+    do {
+        playGame();
+        cout << "\nPlay again? (y/n): ";
+        cin >> choice;
+    } while (tolower(choice) == 'y');
+
+    cout << "Thanks for playing! Bye-bye!" << endl;
     return 0;
 }
